@@ -117,6 +117,19 @@ class _HomePageState extends State<HomePage> {
       });
     });
     _controller.addListener(() {
+      // Check if text contains newline (Enter was pressed)
+      if (_controller.text.contains('\n')) {
+        // Remove the newline
+        final textWithoutNewline = _controller.text.replaceAll('\n', '');
+        _controller.value = TextEditingValue(
+          text: textWithoutNewline,
+          selection: TextSelection.collapsed(offset: textWithoutNewline.length),
+        );
+        // Trigger navigation
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _navigateToNewPage();
+        });
+      }
       setState(() {});
     });
   }
@@ -126,6 +139,18 @@ class _HomePageState extends State<HomePage> {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _navigateToNewPage() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewPage(title: text),
+        ),
+      );
+    }
   }
 
   @override
@@ -203,6 +228,9 @@ class _HomePageState extends State<HomePage> {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                       height: 2.0),
+                                  onSubmitted: (value) {
+                                    _navigateToNewPage();
+                                  },
                                   decoration: InputDecoration(
                                     hintText: (_isFocused ||
                                             _controller.text.isNotEmpty)
@@ -247,6 +275,9 @@ class _HomePageState extends State<HomePage> {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                       height: 2),
+                                  onSubmitted: (value) {
+                                    _navigateToNewPage();
+                                  },
                                   decoration: InputDecoration(
                                     hintText: (_isFocused ||
                                             _controller.text.isNotEmpty)
@@ -273,12 +304,76 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(width: 5),
-                    SvgPicture.asset(
-                      'assets/icons/apply.svg',
-                      width: 30,
-                      height: 30,
+                    GestureDetector(
+                      onTap: () {
+                        _navigateToNewPage();
+                      },
+                      child: SvgPicture.asset(
+                        'assets/icons/apply.svg',
+                        width: 30,
+                        height: 30,
+                      ),
                     ),
                   ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NewPage extends StatelessWidget {
+  final String title;
+
+  const NewPage({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'Aeroport',
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Aeroport',
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
