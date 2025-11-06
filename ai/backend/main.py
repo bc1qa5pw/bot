@@ -52,8 +52,9 @@ async def chat(request: ChatRequest):
                     "prompt": request.message,
                     "stream": False,
                     "options": {
-                        "num_predict": 150,  # Limit response length for faster generation
-                        "temperature": 0.7,   # Lower temperature for more focused responses
+                        "num_predict": 50,   # Very short responses for speed
+                        "temperature": 0.5,  # Lower temperature for faster, focused responses
+                        "num_thread": 2,     # Limit CPU threads
                     }
                 }
             )
