@@ -1,8 +1,8 @@
 import os
 import asyncio
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from telegram.error import Conflict
 import asyncpg
 from datetime import datetime, timezone
@@ -62,9 +62,9 @@ async def init_db():
                 first_name VARCHAR(255),
                 last_name VARCHAR(255),
                 language_code VARCHAR(10),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT ((now() AT TIME ZONE 'UTC') + INTERVAL '3 hours'),
+                updated_at TIMESTAMP DEFAULT ((now() AT TIME ZONE 'UTC') + INTERVAL '3 hours'),
+                last_active_at TIMESTAMP DEFAULT ((now() AT TIME ZONE 'UTC') + INTERVAL '3 hours')
             )
         """)
         # Create index on telegram_id for faster lookups
@@ -74,26 +74,27 @@ async def init_db():
         print("Database initialized: users table created/verified")
 
 
-async def save_user(update: Update):
-    """Save or update user in database"""
+async def save_user_async(update: Update):
+    """Save or update user in database asynchronously (non-blocking)"""
     try:
         pool = await get_db_pool()
         user = update.effective_user
         
         async with pool.acquire() as conn:
-            # Use PostgreSQL's CURRENT_TIMESTAMP instead of Python datetime
-            # to avoid timezone awareness issues
+            # Use PostgreSQL's INSERT ... ON CONFLICT for atomic upsert in ONE query
+            # This is much faster than checking existence first
+            # All timestamps use UTC+3 timezone (Moscow time)
             await conn.execute("""
                 INSERT INTO users (telegram_id, username, first_name, last_name, language_code, last_active_at)
-                VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+                VALUES ($1, $2, $3, $4, $5, (now() AT TIME ZONE 'UTC') + INTERVAL '3 hours')
                 ON CONFLICT (telegram_id) 
                 DO UPDATE SET 
                     username = EXCLUDED.username,
                     first_name = EXCLUDED.first_name,
                     last_name = EXCLUDED.last_name,
                     language_code = EXCLUDED.language_code,
-                    last_active_at = CURRENT_TIMESTAMP,
-                    updated_at = CURRENT_TIMESTAMP
+                    last_active_at = (now() AT TIME ZONE 'UTC') + INTERVAL '3 hours',
+                    updated_at = (now() AT TIME ZONE 'UTC') + INTERVAL '3 hours'
             """, 
                 user.id,
                 user.username,
@@ -105,10 +106,24 @@ async def save_user(update: Update):
         print(f"Error saving user to database: {e}")
 
 
+async def ensure_user_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler that ensures user exists in database (runs on all messages, non-blocking)"""
+    # Run database operation asynchronously without blocking the response
+    asyncio.create_task(save_user_async(update))
+    # Don't return anything - let other handlers process the update
+
+
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Save user to database
-    await save_user(update)
-    await update.message.reply_text(f'Hello {update.effective_user.first_name}')
+    # Create inline keyboard with button
+    keyboard = [
+        [InlineKeyboardButton("Run app", url="https://t.me/xp7ktestbot/app")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        f"Hello, {update.effective_user.first_name}. I'm xp7k, proceed to the app",
+        reply_markup=reply_markup
+    )
 
 
 async def post_init(app):
@@ -145,6 +160,12 @@ def main():
         raise ValueError("Environment variable 'token' is not set")
     
     app = ApplicationBuilder().token(token).post_init(post_init).post_shutdown(shutdown).build()
+    
+    # Add handler to ensure user exists in DB on every message (non-blocking)
+    # This runs first, before command handlers
+    app.add_handler(MessageHandler(filters.ALL, ensure_user_handler), group=-1)
+    
+    # Add command handlers
     app.add_handler(CommandHandler("start", hello))
     
     print("Bot starting...")
