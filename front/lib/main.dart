@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:js' as js;
 import 'analytics.dart';
+import 'safe_area_debug_panel.dart';
 
 // Theme helper class
 class AppTheme {
@@ -551,6 +552,8 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                 ),
               ),
               child!,
+              // Safe Area Debug Panel
+              const SafeAreaDebugPanel(),
             ],
           );
         },
@@ -1915,7 +1918,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       );
     } else if (_selectedResolution == 'min1') {
-      // For min1 resolution, use RichText to style "Today"/"Yesterday" with regular font weight
+    // For min1 resolution, use RichText to style "Today"/"Yesterday" with regular font weight
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = today.subtract(const Duration(days: 1));
@@ -1982,12 +1985,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         );
       }
     } else {
-      // For other resolutions, use regular Text
+    // For other resolutions, use regular Text
       textWidget = Text(
-        _formatTimestamp(timestamp),
-        style: const TextStyle(
-          fontSize: 10,
-          color: Color(0xFF818181),
+      _formatTimestamp(timestamp),
+      style: const TextStyle(
+        fontSize: 10,
+        color: Color(0xFF818181),
           height: 1.0, // Fixed line height to prevent layout shift
         ),
         textHeightBehavior: const TextHeightBehavior(
@@ -2076,11 +2079,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
 
     if (!isRetry) {
-      setState(() {
-        _isLoadingChart = true;
+    setState(() {
+      _isLoadingChart = true;
         _chartError = null;
         _chartRetryCount = 0;
-      });
+    });
     }
 
     _lastChartApiCall = DateTime.now();
@@ -2145,7 +2148,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               DateTime? timestamp;
               try {
                 timestamp = DateTime.parse(timeStr).toLocal();
-              } catch (e) {
+            } catch (e) {
                 print('Error parsing timestamp: $e, timeStr: $timeStr');
                 continue;
               }
@@ -2266,13 +2269,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _handleChartError(String error) {
-    setState(() {
-      _chartDataPoints = null;
-      _chartMinPrice = null;
-      _chartMaxPrice = null;
-      _chartFirstTimestamp = null;
-      _chartLastTimestamp = null;
-      _isLoadingChart = false;
+          setState(() {
+            _chartDataPoints = null;
+            _chartMinPrice = null;
+            _chartMaxPrice = null;
+            _chartFirstTimestamp = null;
+            _chartLastTimestamp = null;
+            _isLoadingChart = false;
       _chartError = error;
     });
   }
@@ -2295,15 +2298,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _fetchChartData(isRetry: true);
         }
       });
-    } else {
+      } else {
       // Max retries reached
-      setState(() {
-        _chartDataPoints = null;
-        _chartMinPrice = null;
-        _chartMaxPrice = null;
-        _chartFirstTimestamp = null;
-        _chartLastTimestamp = null;
-        _isLoadingChart = false;
+        setState(() {
+          _chartDataPoints = null;
+          _chartMinPrice = null;
+          _chartMaxPrice = null;
+          _chartFirstTimestamp = null;
+          _chartLastTimestamp = null;
+          _isLoadingChart = false;
         _chartError =
             'Failed to load chart after $_maxRetries attempts. Please try again later.';
       });
@@ -2328,7 +2331,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final marketStats = data['market_stats'] as Map<String, dynamic>?;
 
         if (marketStats != null) {
-          setState(() {
+      setState(() {
             _mcap = (marketStats['mcap'] as num?)?.toDouble();
             _fdmc = (marketStats['fdmc'] as num?)?.toDouble();
             _volume24h = (marketStats['volume_usd_24h'] as num?)?.toDouble();
@@ -2440,7 +2443,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 }
               }
             }
-          } else {
+      } else {
             print('Token list fetch failed: ${tokenResponse.statusCode}');
             print('Response: ${tokenResponse.body}');
           }
@@ -2492,7 +2495,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             _sellAmount = inputAmount.toDouble();
             _isLoadingSwapAmount = false;
           });
-        } else {
+    } else {
           print(
               'No input_amount in response. Available keys: ${data.keys.toList()}');
           setState(() {
@@ -2593,7 +2596,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           final end = Alignment(0.9 - rotation, 0.8 + rotation * 0.2);
           return Stack(
             fit: StackFit.expand,
-            children: [
+        children: [
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -2661,428 +2664,428 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           );
         },
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: double.infinity,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: double.infinity,
                   padding: const EdgeInsets.only(
                       top: 30, bottom: 15, left: 15, right: 15),
-                  child: SvgPicture.asset(
+                      child: SvgPicture.asset(
                     AppTheme.isLightTheme
                         ? 'assets/images/logo_light.svg'
                         : 'assets/images/logo_dark.svg',
-                    width: 30,
-                    height: 30,
-                  ),
-                ),
-                if (_isFocused)
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Listener(
-                            onPointerDown: (event) {
-                              print('Suggestion 1 pointer down'); // Debug
-                              // Set flag immediately to prevent unfocus
-                              _isTappingSuggestion = true;
-                              // Request focus immediately
-                              FocusScope.of(context).requestFocus(_focusNode);
-                              // Set text and navigate
-                              _controller.text =
-                                  'What is my all wallet\'s last month profit';
-                              print(
-                                  'Text set to: ${_controller.text}'); // Debug
-                              // Navigate after a short delay
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                if (mounted) {
-                                  _isTappingSuggestion = false;
-                                  _navigateToNewPage();
-                                }
-                              });
-                            },
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5.0, horizontal: 15.0),
-                                child: Text(
-                                  'What is my all wallet\'s last month profit',
-                                  style: TextStyle(
-                                    fontFamily: 'Aeroport',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppTheme.textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          Listener(
-                            onPointerDown: (event) {
-                              print('Suggestion 2 pointer down'); // Debug
-                              // Set flag immediately to prevent unfocus
-                              _isTappingSuggestion = true;
-                              // Request focus immediately
-                              FocusScope.of(context).requestFocus(_focusNode);
-                              // Set text and navigate
-                              _controller.text = 'Advise me a token to buy';
-                              print(
-                                  'Text set to: ${_controller.text}'); // Debug
-                              // Navigate after a short delay
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                if (mounted) {
-                                  _isTappingSuggestion = false;
-                                  _navigateToNewPage();
-                                }
-                              });
-                            },
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5.0, horizontal: 15.0),
-                                child: Text(
-                                  'Advise me a token to buy',
-                                  style: TextStyle(
-                                    fontFamily: 'Aeroport',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppTheme.textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        width: 30,
+                        height: 30,
                       ),
                     ),
-                  ),
-                if (!_isFocused)
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Padding(
+                    if (_isFocused)
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Listener(
+                                onPointerDown: (event) {
+                                  print('Suggestion 1 pointer down'); // Debug
+                                  // Set flag immediately to prevent unfocus
+                                  _isTappingSuggestion = true;
+                                  // Request focus immediately
+                              FocusScope.of(context).requestFocus(_focusNode);
+                                  // Set text and navigate
+                                  _controller.text =
+                                      'What is my all wallet\'s last month profit';
+                                  print(
+                                      'Text set to: ${_controller.text}'); // Debug
+                                  // Navigate after a short delay
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                    if (mounted) {
+                                      _isTappingSuggestion = false;
+                                      _navigateToNewPage();
+                                    }
+                                  });
+                                },
+                            child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0, horizontal: 15.0),
+                                    child: Text(
+                                      'What is my all wallet\'s last month profit',
+                                      style: TextStyle(
+                                        fontFamily: 'Aeroport',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w400,
+                                    color: AppTheme.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 30),
+                              Listener(
+                                onPointerDown: (event) {
+                                  print('Suggestion 2 pointer down'); // Debug
+                                  // Set flag immediately to prevent unfocus
+                                  _isTappingSuggestion = true;
+                                  // Request focus immediately
+                              FocusScope.of(context).requestFocus(_focusNode);
+                                  // Set text and navigate
+                                  _controller.text = 'Advise me a token to buy';
+                                  print(
+                                      'Text set to: ${_controller.text}'); // Debug
+                                  // Navigate after a short delay
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                    if (mounted) {
+                                      _isTappingSuggestion = false;
+                                      _navigateToNewPage();
+                                    }
+                                  });
+                                },
+                            child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                        vertical: 5.0, horizontal: 15.0),
+                                    child: Text(
+                                      'Advise me a token to buy',
+                                      style: TextStyle(
+                                        fontFamily: 'Aeroport',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w400,
+                                    color: AppTheme.textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (!_isFocused)
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Column(
-                                children: [
-                                  Stack(
-                                    alignment: Alignment.center,
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                      Stack(
+                                        alignment: Alignment.center,
                                         children: [
+                                      Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
                                           Text('Toncoin',
-                                              style: TextStyle(
+                                                  style: TextStyle(
                                                 fontWeight: FontWeight.w400,
                                                 color: AppTheme.textColor,
-                                                fontSize: 20,
-                                              )),
+                                                    fontSize: 20,
+                                                  )),
                                           const SizedBox.shrink(),
-                                          Text(
+                                              Text(
                                             '${_formatPercentage(_priceChange24h)} (24H)',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w300,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w300,
                                               color: AppTheme.textColor,
-                                              fontSize: 15,
-                                            ),
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedResolution =
-                                                    _resolutionMap['m']!;
-                                              });
-                                              _fetchChartData();
-                                            },
-                                            child: Text(
-                                              "m",
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    _selectedResolution ==
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _selectedResolution =
+                                                        _resolutionMap['m']!;
+                                                  });
+                                                  _fetchChartData();
+                                                },
+                                                child: Text(
+                                                  "m",
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                        _selectedResolution ==
                                                             _resolutionMap['m']
-                                                        ? FontWeight.normal
-                                                        : FontWeight.w500,
+                                                            ? FontWeight.normal
+                                                            : FontWeight.w500,
                                                 color: _selectedResolution ==
                                                         _resolutionMap['m']
                                                     ? AppTheme.textColor
                                                     : const Color(0xFF818181),
-                                                fontSize: 15,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15),
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedResolution =
-                                                    _resolutionMap['q']!;
-                                              });
-                                              _fetchChartData();
-                                            },
-                                            child: Text(
-                                              "q",
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    _selectedResolution ==
+                                              const SizedBox(width: 15),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _selectedResolution =
+                                                        _resolutionMap['q']!;
+                                                  });
+                                                  _fetchChartData();
+                                                },
+                                                child: Text(
+                                                  "q",
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                        _selectedResolution ==
                                                             _resolutionMap['q']
-                                                        ? FontWeight.normal
-                                                        : FontWeight.w500,
+                                                            ? FontWeight.normal
+                                                            : FontWeight.w500,
                                                 color: _selectedResolution ==
                                                         _resolutionMap['q']
                                                     ? AppTheme.textColor
                                                     : const Color(0xFF818181),
-                                                fontSize: 15,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15),
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedResolution =
-                                                    _resolutionMap['h']!;
-                                              });
-                                              _fetchChartData();
-                                            },
-                                            child: Text(
-                                              "h",
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    _selectedResolution ==
+                                              const SizedBox(width: 15),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _selectedResolution =
+                                                        _resolutionMap['h']!;
+                                                  });
+                                                  _fetchChartData();
+                                                },
+                                                child: Text(
+                                                  "h",
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                        _selectedResolution ==
                                                             _resolutionMap['h']
-                                                        ? FontWeight.normal
-                                                        : FontWeight.w500,
+                                                            ? FontWeight.normal
+                                                            : FontWeight.w500,
                                                 color: _selectedResolution ==
                                                         _resolutionMap['h']
                                                     ? AppTheme.textColor
                                                     : const Color(0xFF818181),
-                                                fontSize: 15,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 15),
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedResolution =
-                                                    _resolutionMap['d']!;
-                                              });
-                                              _fetchChartData();
-                                            },
-                                            child: Text(
-                                              "d",
-                                              style: TextStyle(
-                                                fontWeight:
-                                                    _selectedResolution ==
+                                              const SizedBox(width: 15),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _selectedResolution =
+                                                        _resolutionMap['d']!;
+                                                  });
+                                                  _fetchChartData();
+                                                },
+                                                child: Text(
+                                                  "d",
+                                                  style: TextStyle(
+                                                    fontWeight:
+                                                        _selectedResolution ==
                                                             _resolutionMap['d']
-                                                        ? FontWeight.normal
-                                                        : FontWeight.w500,
+                                                            ? FontWeight.normal
+                                                            : FontWeight.w500,
                                                 color: _selectedResolution ==
                                                         _resolutionMap['d']
                                                     ? AppTheme.textColor
                                                     : const Color(0xFF818181),
-                                                fontSize: 15,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
                                   const SizedBox(height: 15),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
                                         children: [
-                                          Text(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
                                             'MCAP',
-                                            style: TextStyle(
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatNumber(_mcap,
                                                 isCurrency: true),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
                                             'FDMC',
-                                            style: TextStyle(
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatNumber(_fdmc,
                                                 isCurrency: true),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'VOL',
-                                            style: TextStyle(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'VOL',
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatNumber(_volume24h,
                                                 isCurrency: true),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
                                             '5M',
-                                            style: TextStyle(
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatPercentage(_priceChange5m),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
                                             '1H',
-                                            style: TextStyle(
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatPercentage(_priceChange1h),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
                                             '6H',
-                                            style: TextStyle(
+                                                style: TextStyle(
                                               fontWeight: FontWeight.w400,
                                               color: AppTheme.textColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
                                           const SizedBox(height: 5),
-                                          Text(
+                                              Text(
                                             _formatPercentage(_priceChange6h),
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.w300,
-                                              color: Color(0xFF818181),
-                                              fontSize: 12,
-                                            ),
+                                                  fontWeight: FontWeight.w300,
+                                                  color: Color(0xFF818181),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
                                   const SizedBox(height: 15),
-                                  Expanded(
-                                    child: Row(
+                                      Expanded(
+                                        child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            children: [
-                                              Expanded(
-                                                child: SizedBox.expand(
-                                                  child: _isLoadingChart
-                                                      ? const Center(
-                                                          child: SizedBox(
-                                                            width: 20,
-                                                            height: 20,
-                                                            child:
-                                                                CircularProgressIndicator(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                children: [
+                                                  Expanded(
+                                                    child: SizedBox.expand(
+                                                      child: _isLoadingChart
+                                                          ? const Center(
+                                                              child: SizedBox(
+                                                                width: 20,
+                                                                height: 20,
+                                                                child:
+                                                                    CircularProgressIndicator(
                                                               strokeWidth: 2,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<
-                                                                      Color>(
-                                                                Color(
-                                                                    0xFF818181),
+                                                                  valueColor:
+                                                                      AlwaysStoppedAnimation<
+                                                                          Color>(
+                                                                    Color(
+                                                                        0xFF818181),
+                                                                  ),
+                                                                ),
                                                               ),
-                                                            ),
-                                                          ),
-                                                        )
+                                                            )
                                                       : (_chartDataPoints !=
                                                                   null &&
                                                               _chartDataPoints!
@@ -3151,15 +3154,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                                     },
                                                                     child:
                                                                         CustomPaint(
-                                                                      painter:
-                                                                          DiagonalLinePainter(
-                                                                        dataPoints:
-                                                                            _chartDataPoints,
+                                                              painter:
+                                                                  DiagonalLinePainter(
+                                                                dataPoints:
+                                                                    _chartDataPoints,
                                                                         selectedPointIndex:
                                                                             _selectedPointIndex,
-                                                                      ),
-                                                                    ),
-                                                                  ),
+                                                              ),
+                                                            ),
+                                                    ),
                                                                 );
                                                               },
                                                             )
@@ -3202,24 +3205,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                                 .length
                                                     ? _buildSelectedPointTimestampRow()
                                                     : Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
                                                                 .center,
-                                                        children: [
-                                                          _buildTimestampWidget(
-                                                              _chartFirstTimestamp),
-                                                          _buildTimestampWidget(
-                                                              _chartLastTimestamp),
-                                                        ],
+                                                    children: [
+                                                      _buildTimestampWidget(
+                                                          _chartFirstTimestamp),
+                                                      _buildTimestampWidget(
+                                                          _chartLastTimestamp),
+                                                    ],
                                                       ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 5),
                                         // Price column: height = chart space (from max point to min point), top-aligned
                                         // The chart is in an Expanded Column, so we use LayoutBuilder
                                         // to get the actual chart height
@@ -3247,196 +3250,196 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                   : _buildNormalPriceColumn(),
                                             );
                                           },
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  )
-                                ],
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.only(
                               top: 20, bottom: 0, left: 15, right: 15),
-                          child: Column(children: [
-                            Row(
+                              child: Column(children: [
+                                Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
                                 Text('Buy',
-                                    style: TextStyle(
+                                        style: TextStyle(
                                       fontWeight: FontWeight.w400,
                                       color: AppTheme.textColor,
-                                      fontSize: 20,
-                                    )),
-                                SizedBox(
-                                  height: 20,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        Image.asset('assets/sample/1.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/2.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/3.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/4.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/5.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            Row(
+                                          fontSize: 20,
+                                        )),
+                                    SizedBox(
+                                      height: 20,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children: [
+                                            Image.asset('assets/sample/1.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/2.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/3.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/4.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/5.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
                                 Text(
                                     _buyAmount
                                         .toStringAsFixed(6)
                                         .replaceAll(RegExp(r'0+$'), '')
                                         .replaceAll(RegExp(r'\.$'), ''),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 20,
-                                      color: AppTheme.textColor,
-                                    )),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Image.asset('assets/sample/ton.png',
-                                        width: 20,
-                                        height: 20,
-                                        fit: BoxFit.contain),
-                                    const SizedBox(width: 8),
-                                    Text(_buyCurrency.toLowerCase(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          color: AppTheme.textColor,
                                           fontSize: 20,
+                                      color: AppTheme.textColor,
                                         )),
-                                    const SizedBox(width: 8),
-                                    SvgPicture.asset(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/sample/ton.png',
+                                            width: 20,
+                                            height: 20,
+                                            fit: BoxFit.contain),
+                                        const SizedBox(width: 8),
+                                    Text(_buyCurrency.toLowerCase(),
+                                            style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.textColor,
+                                              fontSize: 20,
+                                            )),
+                                        const SizedBox(width: 8),
+                                        SvgPicture.asset(
                                       AppTheme.isLightTheme
                                           ? 'assets/icons/select_light.svg'
                                           : 'assets/icons/select_dark.svg',
-                                      width: 5,
-                                      height: 10,
-                                    ),
+                                          width: 5,
+                                          height: 10,
+                                        ),
+                                      ],
+                                    )
                                   ],
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            const Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
+                                ),
+                                const SizedBox(height: 15),
+                                const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
                                   Text(r'$1',
-                                      style: TextStyle(
+                                          style: TextStyle(
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                        color: Color(0xFF818181),
-                                      )),
+                                            fontSize: 15,
+                                            color: Color(0xFF818181),
+                                          )),
                                   Text('TON',
-                                      style: TextStyle(
+                                          style: TextStyle(
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                        color: Color(0xFF818181),
-                                      )),
-                                ]),
-                          ]),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 0, horizontal: 15),
-                          child: SvgPicture.asset(
+                                            fontSize: 15,
+                                            color: Color(0xFF818181),
+                                          )),
+                                    ]),
+                              ]),
+                            ),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 15),
+                              child: SvgPicture.asset(
                             AppTheme.isLightTheme
                                 ? 'assets/icons/rotate_light.svg'
                                 : 'assets/icons/rotate_dark.svg',
-                            width: 30,
-                            height: 30,
-                          ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(
-                              top: 15, bottom: 15, left: 15, right: 15),
-                          child: Column(children: [
-                            Row(
+                                width: 30,
+                                height: 30,
+                              ),
+                            ),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.only(
+                                  top: 15, bottom: 15, left: 15, right: 15),
+                              child: Column(children: [
+                                Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
                                 Text('Sell',
-                                    style: TextStyle(
+                                        style: TextStyle(
                                       fontWeight: FontWeight.w400,
                                       color: AppTheme.textColor,
-                                      fontSize: 20,
-                                    )),
-                                SizedBox(
-                                  height: 20,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        Image.asset('assets/sample/1.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/2.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/3.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/4.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                        const SizedBox(width: 5),
-                                        Image.asset('assets/sample/5.png',
-                                            width: 20,
-                                            height: 20,
-                                            fit: BoxFit.contain),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            Row(
+                                          fontSize: 20,
+                                        )),
+                                    SizedBox(
+                                      height: 20,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children: [
+                                            Image.asset('assets/sample/1.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/2.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/3.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/4.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                            const SizedBox(width: 5),
+                                            Image.asset('assets/sample/5.png',
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.contain),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
                                 Text(
                                     _isLoadingSwapAmount
                                         ? '...'
@@ -3450,58 +3453,58 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                     .replaceAll(
                                                         RegExp(r'\.$'), '')
                                                 : '1')),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 20,
-                                      color: AppTheme.textColor,
-                                    )),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Image.asset('assets/sample/usdt.png',
-                                        width: 20,
-                                        height: 20,
-                                        fit: BoxFit.contain),
-                                    const SizedBox(width: 8),
-                                    Text(_sellCurrency.toLowerCase(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          color: AppTheme.textColor,
                                           fontSize: 20,
+                                      color: AppTheme.textColor,
                                         )),
-                                    const SizedBox(width: 8),
-                                    SvgPicture.asset(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/sample/usdt.png',
+                                            width: 20,
+                                            height: 20,
+                                            fit: BoxFit.contain),
+                                        const SizedBox(width: 8),
+                                    Text(_sellCurrency.toLowerCase(),
+                                            style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.textColor,
+                                              fontSize: 20,
+                                            )),
+                                        const SizedBox(width: 8),
+                                        SvgPicture.asset(
                                       AppTheme.isLightTheme
                                           ? 'assets/icons/select_light.svg'
                                           : 'assets/icons/select_dark.svg',
-                                      width: 5,
-                                      height: 10,
-                                    ),
+                                          width: 5,
+                                          height: 10,
+                                        ),
+                                      ],
+                                    )
                                   ],
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            const Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
+                                ),
+                                const SizedBox(height: 15),
+                                const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
                                   Text(r'$1',
-                                      style: TextStyle(
+                                          style: TextStyle(
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                        color: Color(0xFF818181),
-                                      )),
+                                            fontSize: 15,
+                                            color: Color(0xFF818181),
+                                          )),
                                   Text('TON',
-                                      style: TextStyle(
+                                          style: TextStyle(
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 15,
-                                        color: Color(0xFF818181),
-                                      )),
-                                ]),
-                          ]),
-                        ),
+                                            fontSize: 15,
+                                            color: Color(0xFF818181),
+                                          )),
+                                    ]),
+                              ]),
+                            ),
                         Container(
                           margin: const EdgeInsets.only(
                               bottom: 10, right: 15, left: 15),
@@ -3511,171 +3514,171 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             color: AppTheme.buttonBackgroundColor,
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Center(
-                                child: Text(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Center(
+                                    child: Text(
                                   'Add wallet',
-                                  style: TextStyle(
+                                      style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: AppTheme.buttonTextColor,
                                     fontSize: 15,
                                     height: 20 / 15,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(
-                      top: 10, bottom: 30, left: 15, right: 15),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          constraints: const BoxConstraints(minHeight: 30),
-                          child: _controller.text.isEmpty
-                              ? SizedBox(
-                                  height: 30,
-                                  child: TextField(
-                                    key: _textFieldKey,
-                                    controller: _controller,
-                                    focusNode: _focusNode,
-                                    enabled: true,
-                                    readOnly: false,
-                                    cursorColor: AppTheme.textColor,
-                                    cursorHeight: 15,
-                                    maxLines: 11,
-                                    minLines: 1,
-                                    textAlignVertical: TextAlignVertical.center,
-                                    style: const TextStyle(
-                                        fontFamily: 'Aeroport',
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                        height: 2.0,
-                                        color:
-                                            Color.fromARGB(255, 255, 255, 255)),
-                                    onSubmitted: (value) {
-                                      print(
-                                          'TextField onSubmitted called with: "$value"'); // Debug
-                                      _navigateToNewPage();
-                                    },
-                                    onChanged: (value) {
-                                      print(
-                                          'TextField onChanged called with: "$value"'); // Debug
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: (_isFocused ||
-                                              _controller.text.isNotEmpty)
-                                          ? null
-                                          : 'Ask anything',
-                                      hintStyle: TextStyle(
-                                          color: AppTheme.textColor,
-                                          fontFamily: 'Aeroport',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                          height: 2.0),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: !_isFocused
-                                          ? const EdgeInsets.only(
-                                              left: 0,
-                                              right: 0,
-                                              top: 5,
-                                              bottom: 5)
-                                          : const EdgeInsets.only(right: 0),
+                                      ),
                                     ),
                                   ),
-                                )
-                              : Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: TextField(
-                                    key: _textFieldKey,
-                                    controller: _controller,
-                                    focusNode: _focusNode,
-                                    enabled: true,
-                                    readOnly: false,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.only(
+                      top: 10, bottom: 30, left: 15, right: 15),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              constraints: const BoxConstraints(minHeight: 30),
+                              child: _controller.text.isEmpty
+                                  ? SizedBox(
+                                      height: 30,
+                                      child: TextField(
+                                        key: _textFieldKey,
+                                        controller: _controller,
+                                        focusNode: _focusNode,
+                                        enabled: true,
+                                        readOnly: false,
                                     cursorColor: AppTheme.textColor,
-                                    cursorHeight: 15,
-                                    maxLines: 11,
-                                    minLines: 1,
+                                        cursorHeight: 15,
+                                        maxLines: 11,
+                                        minLines: 1,
+                                    textAlignVertical: TextAlignVertical.center,
+                                        style: const TextStyle(
+                                            fontFamily: 'Aeroport',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            height: 2.0,
+                                        color:
+                                            Color.fromARGB(255, 255, 255, 255)),
+                                        onSubmitted: (value) {
+                                          print(
+                                              'TextField onSubmitted called with: "$value"'); // Debug
+                                          _navigateToNewPage();
+                                        },
+                                        onChanged: (value) {
+                                          print(
+                                              'TextField onChanged called with: "$value"'); // Debug
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: (_isFocused ||
+                                                  _controller.text.isNotEmpty)
+                                              ? null
+                                              : 'Ask anything',
+                                      hintStyle: TextStyle(
+                                          color: AppTheme.textColor,
+                                              fontFamily: 'Aeroport',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              height: 2.0),
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding: !_isFocused
+                                              ? const EdgeInsets.only(
+                                                  left: 0,
+                                                  right: 0,
+                                                  top: 5,
+                                                  bottom: 5)
+                                              : const EdgeInsets.only(right: 0),
+                                        ),
+                                      ),
+                                    )
+                                  : Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: TextField(
+                                        key: _textFieldKey,
+                                        controller: _controller,
+                                        focusNode: _focusNode,
+                                        enabled: true,
+                                        readOnly: false,
+                                    cursorColor: AppTheme.textColor,
+                                        cursorHeight: 15,
+                                        maxLines: 11,
+                                        minLines: 1,
                                     textAlignVertical:
                                         _controller.text.split('\n').length == 1
                                             ? TextAlignVertical.center
                                             : TextAlignVertical.bottom,
                                     style: TextStyle(
-                                        fontFamily: 'Aeroport',
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                        height: 2,
+                                            fontFamily: 'Aeroport',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            height: 2,
                                         color: AppTheme.textColor),
-                                    onSubmitted: (value) {
-                                      print(
-                                          'TextField onSubmitted called with: "$value"'); // Debug
-                                      _navigateToNewPage();
-                                    },
-                                    onChanged: (value) {
-                                      print(
-                                          'TextField onChanged called with: "$value"'); // Debug
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: (_isFocused ||
-                                              _controller.text.isNotEmpty)
-                                          ? null
-                                          : 'Ask anything',
-                                      hintStyle: const TextStyle(
+                                        onSubmitted: (value) {
+                                          print(
+                                              'TextField onSubmitted called with: "$value"'); // Debug
+                                          _navigateToNewPage();
+                                        },
+                                        onChanged: (value) {
+                                          print(
+                                              'TextField onChanged called with: "$value"'); // Debug
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: (_isFocused ||
+                                                  _controller.text.isNotEmpty)
+                                              ? null
+                                              : 'Ask anything',
+                                          hintStyle: const TextStyle(
                                           color: Color(0xFFFFFFFF),
-                                          fontFamily: 'Aeroport',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                          height: 2),
-                                      border: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      isDense: true,
+                                              fontFamily: 'Aeroport',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              height: 2),
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          isDense: true,
                                       contentPadding:
                                           _controller.text.split('\n').length >
                                                   1
                                               ? const EdgeInsets.only(
                                                   left: 0, right: 0, top: 11)
                                               : const EdgeInsets.only(right: 0),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 7.5),
                         child: GestureDetector(
-                          onTap: () {
-                            print('Apply button tapped'); // Debug
-                            _navigateToNewPage();
-                          },
-                          child: SvgPicture.asset(
+                            onTap: () {
+                              print('Apply button tapped'); // Debug
+                              _navigateToNewPage();
+                            },
+                            child: SvgPicture.asset(
                             AppTheme.isLightTheme
                                 ? 'assets/icons/apply_light.svg'
                                 : 'assets/icons/apply_dark.svg',
                             width: 15,
                             height: 10,
                           ),
-                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+          ),
+        ],
+      ),
           ),
         ),
       ),
@@ -4223,328 +4226,328 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
       child: Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              //padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () {
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  //padding: const EdgeInsets.all(15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
                       Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                    child: Container(
-                      width: double.infinity,
+                        },
+                        child: Container(
+                          width: double.infinity,
                       padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
                         color: AppTheme.backgroundColor,
-                      ),
-                      child: SvgPicture.asset(
+                          ),
+                          child: SvgPicture.asset(
                         AppTheme.isLightTheme
                             ? 'assets/images/logo_light.svg'
                             : 'assets/images/logo_dark.svg',
-                        width: 30,
-                        height: 30,
+                            width: 30,
+                            height: 30,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            reverse: false,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 20.0, right: 20.0),
-                              child: Column(
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                controller: _scrollController,
+                                reverse: false,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 20.0, right: 20.0),
+                                  child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                 children: _qaPairs.asMap().entries.map((entry) {
-                                  final index = entry.key;
-                                  final pair = entry.value;
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Question
-                                      Text(
-                                        pair.question,
-                                        style: const TextStyle(
-                                          fontFamily: 'Aeroport',
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w400,
+                                      final index = entry.key;
+                                      final pair = entry.value;
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Question
+                                          Text(
+                                            pair.question,
+                                            style: const TextStyle(
+                                              fontFamily: 'Aeroport',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
                                           color: Color.fromARGB(
                                               255, 255, 255, 255),
-                                        ),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      // Response (loading, error, or content)
-                                      if (pair.isLoading &&
-                                          pair.dotsController != null)
-                                        AnimatedBuilder(
-                                          animation: pair.dotsController!,
-                                          builder: (context, child) {
-                                            final progress =
-                                                pair.dotsController!.value;
-                                            int dotCount = 1;
-                                            if (progress < 0.33) {
-                                              dotCount = 1;
-                                            } else if (progress < 0.66) {
-                                              dotCount = 2;
-                                            } else {
-                                              dotCount = 3;
-                                            }
-                                            return Text(
-                                              '·' * dotCount,
+                                            ),
+                                            textAlign: TextAlign.left,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          // Response (loading, error, or content)
+                                          if (pair.isLoading &&
+                                              pair.dotsController != null)
+                                            AnimatedBuilder(
+                                              animation: pair.dotsController!,
+                                              builder: (context, child) {
+                                                final progress =
+                                                    pair.dotsController!.value;
+                                                int dotCount = 1;
+                                                if (progress < 0.33) {
+                                                  dotCount = 1;
+                                                } else if (progress < 0.66) {
+                                                  dotCount = 2;
+                                                } else {
+                                                  dotCount = 3;
+                                                }
+                                                return Text(
+                                                  '·' * dotCount,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Aeroport',
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w400,
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                                  ),
+                                                  textAlign: TextAlign.left,
+                                                );
+                                              },
+                                            )
+                                          else if (pair.error != null)
+                                            Text(
+                                              pair.error!,
                                               style: const TextStyle(
                                                 fontFamily: 'Aeroport',
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w400,
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255),
+                                                color: Colors.red,
                                               ),
                                               textAlign: TextAlign.left,
-                                            );
-                                          },
-                                        )
-                                      else if (pair.error != null)
-                                        Text(
-                                          pair.error!,
-                                          style: const TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
-                                            color: Colors.red,
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )
-                                      else if (pair.response != null)
-                                        Text(
-                                          pair.response!,
-                                          style: const TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                            )
+                                          else if (pair.response != null)
+                                            Text(
+                                              pair.response!,
+                                              style: const TextStyle(
+                                                fontFamily: 'Aeroport',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
                                             color: Color(0xFFFFFFFF),
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        )
-                                      else
-                                        const Text(
-                                          'No response received',
-                                          style: TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                              ),
+                                              textAlign: TextAlign.left,
+                                            )
+                                          else
+                                            const Text(
+                                              'No response received',
+                                              style: TextStyle(
+                                                fontFamily: 'Aeroport',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
                                             color: Color(0xFFFFFFFF),
-                                          ),
-                                        ),
-                                      // Add spacing between Q&A pairs (except for the last one in reversed list)
-                                      if (index < _qaPairs.length - 1)
-                                        const SizedBox(height: 32),
-                                    ],
-                                  );
-                                }).toList(),
+                                              ),
+                                            ),
+                                          // Add spacing between Q&A pairs (except for the last one in reversed list)
+                                          if (index < _qaPairs.length - 1)
+                                            const SizedBox(height: 32),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                        // Custom scrollbar - always visible on mobile
-                        // Position it as a separate row item to ensure it's always in viewport
-                        SizedBox(
-                          width: 1.0,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              // Check for valid constraints and scroll controller
-                              if (!_scrollController.hasClients ||
+                            // Custom scrollbar - always visible on mobile
+                            // Position it as a separate row item to ensure it's always in viewport
+                            SizedBox(
+                              width: 1.0,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  // Check for valid constraints and scroll controller
+                                  if (!_scrollController.hasClients ||
                                   constraints.maxHeight == double.infinity ||
-                                  constraints.maxHeight <= 0) {
-                                return const SizedBox.shrink();
-                              }
+                                      constraints.maxHeight <= 0) {
+                                    return const SizedBox.shrink();
+                                  }
 
-                              try {
+                                  try {
                                 final maxScroll =
                                     _scrollController.position.maxScrollExtent;
-                                if (maxScroll <= 0) {
-                                  return const SizedBox.shrink();
-                                }
+                                    if (maxScroll <= 0) {
+                                      return const SizedBox.shrink();
+                                    }
 
                                 final containerHeight = constraints.maxHeight;
                                 final indicatorHeight =
                                     (containerHeight * _scrollIndicatorHeight)
                                         .clamp(0.0, containerHeight);
-                                final availableSpace =
-                                    (containerHeight - indicatorHeight)
-                                        .clamp(0.0, containerHeight);
-                                final topPosition =
-                                    (_scrollProgress * availableSpace)
-                                        .clamp(0.0, containerHeight);
+                                    final availableSpace =
+                                        (containerHeight - indicatorHeight)
+                                            .clamp(0.0, containerHeight);
+                                    final topPosition =
+                                        (_scrollProgress * availableSpace)
+                                            .clamp(0.0, containerHeight);
 
-                                // Only show white thumb, no grey track background
-                                return Align(
-                                  alignment: Alignment.topCenter,
-                                  child: Padding(
+                                    // Only show white thumb, no grey track background
+                                    return Align(
+                                      alignment: Alignment.topCenter,
+                                      child: Padding(
                                     padding: EdgeInsets.only(top: topPosition),
-                                    child: Container(
-                                      width: 1.0,
-                                      height: indicatorHeight.clamp(
-                                          0.0, containerHeight),
+                                        child: Container(
+                                          width: 1.0,
+                                          height: indicatorHeight.clamp(
+                                              0.0, containerHeight),
                                       color: const Color(0xFFFFFFFF),
-                                    ),
-                                  ),
-                                );
-                              } catch (e) {
-                                // Return empty widget if any error occurs
-                                return const SizedBox.shrink();
-                              }
-                            },
-                          ),
+                                        ),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    // Return empty widget if any error occurs
+                                    return const SizedBox.shrink();
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Container(
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: const BoxDecoration(
+                          color: Colors.black,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Container(
                             constraints: const BoxConstraints(minHeight: 30),
-                            child: _inputController.text.isEmpty
-                                ? SizedBox(
-                                    height: 30,
-                                    child: TextField(
-                                      key: _inputTextFieldKey,
-                                      controller: _inputController,
-                                      focusNode: _inputFocusNode,
+                                child: _inputController.text.isEmpty
+                                    ? SizedBox(
+                                        height: 30,
+                                        child: TextField(
+                                          key: _inputTextFieldKey,
+                                          controller: _inputController,
+                                          focusNode: _inputFocusNode,
                                       cursorColor: AppTheme.textColor,
-                                      cursorHeight: 15,
-                                      maxLines: 11,
-                                      minLines: 1,
-                                      textAlignVertical:
-                                          TextAlignVertical.center,
+                                          cursorHeight: 15,
+                                          maxLines: 11,
+                                          minLines: 1,
+                                          textAlignVertical:
+                                              TextAlignVertical.center,
                                       style: TextStyle(
-                                          fontFamily: 'Aeroport',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                          height: 2.0,
+                                              fontFamily: 'Aeroport',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              height: 2.0,
                                           color: AppTheme.textColor),
-                                      onSubmitted: (value) {
-                                        _askNewQuestion();
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: (_isInputFocused ||
-                                                _inputController
-                                                    .text.isNotEmpty)
-                                            ? null
-                                            : 'Ask anything',
-                                        hintStyle: const TextStyle(
+                                          onSubmitted: (value) {
+                                            _askNewQuestion();
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: (_isInputFocused ||
+                                                    _inputController
+                                                        .text.isNotEmpty)
+                                                ? null
+                                                : 'Ask anything',
+                                            hintStyle: const TextStyle(
                                             color: Color(0xFFFFFFFF),
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2.0),
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding: !_isInputFocused
-                                            ? const EdgeInsets.only(
-                                                left: 0,
-                                                right: 0,
-                                                top: 5,
-                                                bottom: 5)
+                                                fontFamily: 'Aeroport',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                                height: 2.0),
+                                            border: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            focusedBorder: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding: !_isInputFocused
+                                                ? const EdgeInsets.only(
+                                                    left: 0,
+                                                    right: 0,
+                                                    top: 5,
+                                                    bottom: 5)
                                             : const EdgeInsets.only(right: 0),
-                                      ),
-                                    ),
-                                  )
-                                : Padding(
+                                          ),
+                                        ),
+                                      )
+                                    : Padding(
                                     padding: const EdgeInsets.only(bottom: 8),
-                                    child: TextField(
-                                      key: _inputTextFieldKey,
-                                      controller: _inputController,
-                                      focusNode: _inputFocusNode,
+                                        child: TextField(
+                                          key: _inputTextFieldKey,
+                                          controller: _inputController,
+                                          focusNode: _inputFocusNode,
                                       cursorColor: AppTheme.textColor,
-                                      cursorHeight: 15,
-                                      maxLines: 11,
-                                      minLines: 1,
+                                          cursorHeight: 15,
+                                          maxLines: 11,
+                                          minLines: 1,
                                       textAlignVertical: _inputController.text
-                                                  .split('\n')
-                                                  .length ==
-                                              1
-                                          ? TextAlignVertical.center
-                                          : TextAlignVertical.bottom,
+                                                      .split('\n')
+                                                      .length ==
+                                                  1
+                                              ? TextAlignVertical.center
+                                              : TextAlignVertical.bottom,
                                       style: TextStyle(
-                                          fontFamily: 'Aeroport',
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                          height: 2,
+                                              fontFamily: 'Aeroport',
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              height: 2,
                                           color: AppTheme.textColor),
-                                      onSubmitted: (value) {
-                                        _askNewQuestion();
-                                      },
-                                      decoration: InputDecoration(
-                                        hintText: (_isInputFocused ||
-                                                _inputController
-                                                    .text.isNotEmpty)
-                                            ? null
-                                            : 'Ask anything',
-                                        hintStyle: const TextStyle(
+                                          onSubmitted: (value) {
+                                            _askNewQuestion();
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: (_isInputFocused ||
+                                                    _inputController
+                                                        .text.isNotEmpty)
+                                                ? null
+                                                : 'Ask anything',
+                                            hintStyle: const TextStyle(
                                             color: Color(0xFFFFFFFF),
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2),
-                                        border: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        isDense: true,
+                                                fontFamily: 'Aeroport',
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                                height: 2),
+                                            border: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            focusedBorder: InputBorder.none,
+                                            isDense: true,
                                         contentPadding: _inputController.text
-                                                    .split('\n')
-                                                    .length >
-                                                1
-                                            ? const EdgeInsets.only(
-                                                left: 0, right: 0, top: 11)
+                                                        .split('\n')
+                                                        .length >
+                                                    1
+                                                ? const EdgeInsets.only(
+                                                    left: 0, right: 0, top: 11)
                                             : const EdgeInsets.only(right: 0),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        GestureDetector(
-                          onTap: () {
-                            _askNewQuestion();
-                          },
-                          child: SvgPicture.asset(
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            GestureDetector(
+                              onTap: () {
+                                _askNewQuestion();
+                              },
+                              child: SvgPicture.asset(
                             AppTheme.isLightTheme
                                 ? 'assets/icons/apply_light.svg'
                                 : 'assets/icons/apply_dark.svg',
                             width: 15,
                             height: 10,
-                          ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
         ),
       ),
     );
