@@ -7,15 +7,71 @@ import 'dart:math' as math;
 import 'dart:js' as js;
 import 'dart:async';
 import 'package:flutter_telegram_miniapp/flutter_telegram_miniapp.dart' as tma;
+import 'package:intl/intl.dart';
 import 'analytics.dart';
 import 'telegram_safe_area.dart';
 import 'telegram_webapp.dart';
 
 // Theme helper class
 class AppTheme {
+  static final ValueNotifier<String?> _colorSchemeNotifier = ValueNotifier<String?>(null);
+  
+  static ValueNotifier<String?> get colorSchemeNotifier => _colorSchemeNotifier;
+  
+  /// Initialize theme from Telegram WebApp
+  static void initialize() {
+    final telegramWebApp = TelegramWebApp();
+    
+    // Get initial theme
+    final colorScheme = telegramWebApp.colorScheme;
+    _colorSchemeNotifier.value = colorScheme;
+    print('AppTheme initialized with colorScheme: $colorScheme');
+    
+    // Listen for theme changes in real-time
+    // According to Telegram docs: when themeChanged event fires,
+    // the WebApp object already has updated colorScheme and themeParams
+    telegramWebApp.onThemeChanged(() {
+      // Immediately read the new colorScheme from Telegram WebApp
+      // The WebApp object (this) already contains the updated values
+      final newColorScheme = telegramWebApp.colorScheme;
+      print('Theme changed event received! New colorScheme: $newColorScheme');
+      
+      // Update the notifier immediately to trigger UI rebuild
+      final oldColorScheme = _colorSchemeNotifier.value;
+      if (oldColorScheme != newColorScheme) {
+        _colorSchemeNotifier.value = newColorScheme;
+        print('Theme updated from "$oldColorScheme" to "$newColorScheme"');
+      } else {
+        print('Theme value unchanged: $newColorScheme');
+      }
+    });
+    print('Theme change listener registered');
+  }
+  
+  /// Manually refresh theme from Telegram WebApp (useful for debugging or manual refresh)
+  static void refreshTheme() {
+    final telegramWebApp = TelegramWebApp();
+    final colorScheme = telegramWebApp.colorScheme;
+    if (_colorSchemeNotifier.value != colorScheme) {
+      print('Manually refreshing theme to: $colorScheme');
+      _colorSchemeNotifier.value = colorScheme;
+    }
+  }
+  
+  /// Get current color scheme from Telegram, fallback to env variable if not available
+  static String? get _currentColorScheme {
+    final telegramWebApp = TelegramWebApp();
+    final colorScheme = telegramWebApp.colorScheme;
+    if (colorScheme != null) {
+      return colorScheme;
+    }
+    // Fallback to env variable for local development
+    return dotenv.env['THEME'];
+  }
+  
   static bool get isLightTheme {
-    final theme = dotenv.env['THEME']?.toLowerCase();
-    return theme == 'light' || theme == 'white';
+    final colorScheme = _colorSchemeNotifier.value ?? _currentColorScheme;
+    return colorScheme?.toLowerCase() == 'light';
   }
 
   static bool get isDarkTheme => !isLightTheme;
@@ -748,6 +804,9 @@ void main() async {
     final telegramWebApp = TelegramWebApp();
     await telegramWebApp.initialize();
   }
+  
+  // Initialize theme from Telegram WebApp (will be called again in MyAppState, but this ensures early initialization)
+  AppTheme.initialize();
 
   runApp(const MyApp());
 }
@@ -763,6 +822,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Initialize theme from Telegram WebApp
+    AppTheme.initialize();
+    
     // Initialize Vercel Analytics after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VercelAnalytics.init();
@@ -772,89 +834,107 @@ class _MyAppState extends State<MyApp> {
       // WebApp is already initialized in main() via tma.WebApp().init()
     });
   }
+  
+  @override
+  void dispose() {
+    // Clean up listener if needed
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Telegram Mini App',
-      // Use default theme without Material fonts to avoid loading errors
-      theme: ThemeData(
-        useMaterial3: false,
-        scaffoldBackgroundColor: AppTheme.backgroundColor,
-        fontFamily: 'Aeroport',
-        textTheme: TextTheme(
-          bodyLarge: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          bodyMedium: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          bodySmall: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          displayLarge: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          displayMedium: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          displaySmall: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          headlineLarge: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          headlineMedium: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          headlineSmall: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          titleLarge: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          titleMedium: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          titleSmall: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          labelLarge: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          labelMedium: TextStyle(
-              fontFamily: 'Aeroport',
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textColor),
-          labelSmall: TextStyle(
-              fontFamily: 'Aeroport',
+    // Listen to theme changes and rebuild when theme changes
+    return ValueListenableBuilder<String?>(
+      valueListenable: AppTheme.colorSchemeNotifier,
+      builder: (context, colorScheme, child) {
+        return MaterialApp(
+          title: 'Telegram Mini App',
+          builder: (context, child) {
+            return Stack(
+              children: [
+                if (child != null) child,
+                const GlobalBottomBar(),
+              ],
+            );
+          },
+          // Use default theme without Material fonts to avoid loading errors
+          theme: ThemeData(
+            useMaterial3: false,
+            scaffoldBackgroundColor: AppTheme.backgroundColor,
+            fontFamily: 'Aeroport',
+            textTheme: TextTheme(
+              bodyLarge: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              bodyMedium: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              bodySmall: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              displayLarge: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              displayMedium: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              displaySmall: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              headlineLarge: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              headlineMedium: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              headlineSmall: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              titleLarge: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              titleMedium: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              titleSmall: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              labelLarge: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              labelMedium: TextStyle(
+                  fontFamily: 'Aeroport',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textColor),
+              labelSmall: TextStyle(
+                  fontFamily: 'Aeroport',
               fontSize: 15,
               fontWeight: FontWeight.w500,
               color: AppTheme.textColor),
@@ -874,6 +954,226 @@ class _MyAppState extends State<MyApp> {
       ),
       debugShowCheckedModeBanner: false,
       home: const SimpleMainPage(),
+        );
+      },
+    );
+  }
+}
+
+// Global bottom bar widget that appears on all pages
+class GlobalBottomBar extends StatefulWidget {
+  const GlobalBottomBar({super.key});
+
+  @override
+  State<GlobalBottomBar> createState() => _GlobalBottomBarState();
+}
+
+class _GlobalBottomBarState extends State<GlobalBottomBar> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final GlobalKey _textFieldKey = GlobalKey();
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+    _controller.addListener(() {
+      if (_controller.text.contains('\n')) {
+        final textWithoutNewline = _controller.text.replaceAll('\n', '');
+        _controller.value = TextEditingValue(
+          text: textWithoutNewline,
+          selection: TextSelection.collapsed(offset: textWithoutNewline.length),
+        );
+      }
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _navigateToNewPage() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      VercelAnalytics.trackEvent('question_submitted', properties: {
+        'question_length': text.length.toString(),
+      });
+
+      VercelAnalytics.trackPageView(path: '/response', title: 'Response');
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewPage(title: text),
+        ),
+      ).then((_) {
+        _controller.clear();
+        VercelAnalytics.trackPageView(path: '/', title: 'Home');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Material(
+        color: AppTheme.backgroundColor,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(top: 10, bottom: 15),
+          child: SafeArea(
+            top: false,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 15, right: 15),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 30),
+                    child: _controller.text.isEmpty
+                      ? SizedBox(
+                          height: 30,
+                          child: TextField(
+                            key: _textFieldKey,
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            enabled: true,
+                            readOnly: false,
+                            cursorColor: AppTheme.textColor,
+                            cursorHeight: 15,
+                            maxLines: 11,
+                            minLines: 1,
+                            textAlignVertical: TextAlignVertical.center,
+                            style: TextStyle(
+                                fontFamily: 'Aeroport',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                height: 2.0,
+                                color: AppTheme.textColor),
+                            onSubmitted: (value) {
+                              _navigateToNewPage();
+                            },
+                            onChanged: (value) {},
+                            decoration: InputDecoration(
+                              hintText: (_isFocused ||
+                                      _controller.text.isNotEmpty)
+                                  ? null
+                                  : 'AI AND SEARCH',
+                              hintStyle: TextStyle(
+                                  color: AppTheme.textColor,
+                                  fontFamily: 'Aeroport',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  height: 2.0),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: !_isFocused
+                                  ? const EdgeInsets.only(
+                                      left: 0,
+                                      right: 0,
+                                      top: 5,
+                                      bottom: 5)
+                                  : const EdgeInsets.only(right: 0),
+                            ),
+                          ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: TextField(
+                            key: _textFieldKey,
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            enabled: true,
+                            readOnly: false,
+                            cursorColor: AppTheme.textColor,
+                            cursorHeight: 15,
+                            maxLines: 11,
+                            minLines: 1,
+                            textAlignVertical: _controller.text
+                                        .split('\n')
+                                        .length ==
+                                    1
+                                ? TextAlignVertical.center
+                                : TextAlignVertical.bottom,
+                            style: TextStyle(
+                                fontFamily: 'Aeroport',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                height: 2,
+                                color: AppTheme.textColor),
+                            onSubmitted: (value) {
+                              _navigateToNewPage();
+                            },
+                            onChanged: (value) {},
+                            decoration: InputDecoration(
+                              hintText: (_isFocused ||
+                                      _controller.text.isNotEmpty)
+                                  ? null
+                                  : 'AI AND SEARCH',
+                              hintStyle: TextStyle(
+                                  color: AppTheme.textColor,
+                                  fontFamily: 'Aeroport',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  height: 2),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: _controller.text
+                                          .split('\n')
+                                          .length >
+                                      1
+                                  ? const EdgeInsets.only(
+                                      left: 0, right: 0, top: 11)
+                                  : const EdgeInsets.only(right: 0),
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 7.5),
+                child: GestureDetector(
+                  onTap: () {
+                    _navigateToNewPage();
+                  },
+                  child: SvgPicture.asset(
+                    AppTheme.isLightTheme
+                        ? 'assets/icons/apply_light.svg'
+                        : 'assets/icons/apply_dark.svg',
+                    width: 15,
+                    height: 10,
+                  ),
+                ),
+              ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -890,8 +1190,22 @@ class _SimpleMainPageState extends State<SimpleMainPage>
   // Helper method to calculate logo top padding
   double _getLogoTopPadding() {
     final service = TelegramSafeAreaService();
+    
+    // Check if we're in a browser (Telegram WebApp not available)
+    // In browser, safe area insets are not available, so use fallback
+    if (!service.isAvailable) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
+    
     final safeAreaInset = service.getSafeAreaInset();
     final contentSafeAreaInset = service.getContentSafeAreaInset();
+
+    // If both insets are zero (browser or no safe area data), use fallback
+    if (safeAreaInset.isEmpty && contentSafeAreaInset.isEmpty) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
 
     // Formula: top SafeAreaInset + (top ContentSafeAreaInset / 2) - 16
     // This centers the 32px logo in the content safe area zone, respecting the upper inset
@@ -909,11 +1223,7 @@ class _SimpleMainPageState extends State<SimpleMainPage>
     return bottomPadding;
   }
 
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  final GlobalKey _textFieldKey = GlobalKey();
-  bool _isFocused = false;
-  String _selectedTab = 'Coins'; // Default selected tab
+  String _selectedTab = 'Feed'; // Default selected tab
 
   // Mock coin data
   final List<Map<String, dynamic>> _coins = [
@@ -940,6 +1250,34 @@ class _SimpleMainPageState extends State<SimpleMainPage>
     },
   ];
 
+  // Feed items data with SVG images
+  List<Map<String, dynamic>> get _feedItems {
+    
+    return [
+      {
+        'icon': 'assets/sample/mak/1.svg',
+        'primaryText': 'NFT recieved',
+        'secondaryText': '\$24',
+        'timestamp': '15:22',
+        'rightText': 'NFT recieved',
+      },
+      {
+        'icon': 'assets/sample/mak/2.svg',
+        'primaryText': 'Token granted',
+        'secondaryText': '\$1',
+        'timestamp': '13:17',
+        'rightText': '+1 DLLR',
+      },
+      {
+        'icon': 'assets/sample/mak/3.svg',
+        'primaryText': 'Welcome message',
+        'secondaryText': "We've created a wallet for you.",
+        'timestamp': '7:55',
+        'rightText': null,
+      },
+    ];
+  }
+
   late final AnimationController _bgController;
   late final Animation<double> _bgAnimation;
   late final double _bgSeed;
@@ -949,24 +1287,6 @@ class _SimpleMainPageState extends State<SimpleMainPage>
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
-    });
-    _controller.addListener(() {
-      if (_controller.text.contains('\n')) {
-        final textWithoutNewline = _controller.text.replaceAll('\n', '');
-        _controller.value = TextEditingValue(
-          text: textWithoutNewline,
-          selection: TextSelection.collapsed(offset: textWithoutNewline.length),
-        );
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _navigateToNewPage();
-        });
-      }
-      setState(() {});
-    });
 
     final random = math.Random();
     final durationMs = 20000 + random.nextInt(14000);
@@ -990,32 +1310,9 @@ class _SimpleMainPageState extends State<SimpleMainPage>
 
   @override
   void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
     _bgController.dispose();
     _noiseController.dispose();
     super.dispose();
-  }
-
-  void _navigateToNewPage() {
-    final text = _controller.text.trim();
-    if (text.isNotEmpty) {
-      VercelAnalytics.trackEvent('question_submitted', properties: {
-        'question_length': text.length.toString(),
-      });
-
-      VercelAnalytics.trackPageView(path: '/response', title: 'Response');
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => NewPage(title: text),
-        ),
-      ).then((_) {
-        _controller.clear();
-        VercelAnalytics.trackPageView(path: '/', title: 'Home');
-      });
-    }
   }
 
   Color _shiftColor(Color base, double shift) {
@@ -1164,13 +1461,13 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
+                              const Text(
                                 '..xk5str4e',
                                 style: TextStyle(
                                   fontFamily: 'Aeroport Mono',
                                   fontSize: 15,
                                   fontWeight: FontWeight.w400,
-                                  color: AppTheme.textColor,
+                                  color: Color(0xFF818181),
                                 ),
                               ),
                               Row(
@@ -1182,30 +1479,41 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                     },
                                     child: SvgPicture.asset(
                                       'assets/icons/copy.svg',
-                                      width: 15,
-                                      height: 15,
+                                      width: 30,
+                                      height: 30,
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 15),
                                   GestureDetector(
                                     onTap: () {
                                       // Edit action
                                     },
                                     child: SvgPicture.asset(
                                       'assets/icons/edit.svg',
-                                      width: 15,
-                                      height: 15,
+                                      width: 30,
+                                      height: 30,
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 15),
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Edit action
+                                    },
+                                    child: SvgPicture.asset(
+                                      'assets/icons/key.svg',
+                                      width: 30,
+                                      height: 30,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
                                   GestureDetector(
                                     onTap: () {
                                       // Exit action
                                     },
                                     child: SvgPicture.asset(
                                       'assets/icons/exit.svg',
-                                      width: 15,
-                                      height: 15,
+                                      width: 30,
+                                      height: 30,
                                     ),
                                   ),
                                 ],
@@ -1236,13 +1544,13 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Wallet 1',
+                                  const Text(
+                                    'Sendal Rodriges',
                                     style: TextStyle(
                                       fontFamily: 'Aeroport',
                                       fontSize: 15,
                                       fontWeight: FontWeight.w400,
-                                      color: AppTheme.textColor,
+                                      color: Color(0xFF818181),
                                       height: 1.0,
                                     ),
                                     textHeightBehavior:
@@ -1252,13 +1560,7 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                     ),
                                   ),
                                   const SizedBox(width: 5),
-                                  SvgPicture.asset(
-                                    AppTheme.isLightTheme
-                                        ? 'assets/icons/select_light.svg'
-                                        : 'assets/icons/select_dark.svg',
-                                    width: 5,
-                                    height: 10,
-                                  ),
+                                  SvgPicture.asset('assets/icons/select.svg', width: 5, height: 10),
                                 ],
                               ),
                             ],
@@ -1273,8 +1575,8 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                   children: [
                                     SvgPicture.asset(
                                       AppTheme.isLightTheme
-                                          ? 'assets/icons/menu/get_light.svg'
-                                          : 'assets/icons/menu/get_dark.svg',
+                                          ? 'assets/icons/menudva/get_light.svg'
+                                          : 'assets/icons/menudva/get_dark.svg',
                                       width: 30,
                                       height: 30,
                                     ),
@@ -1319,8 +1621,8 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                     children: [
                                       SvgPicture.asset(
                                         AppTheme.isLightTheme
-                                            ? 'assets/icons/menu/swap_light.svg'
-                                            : 'assets/icons/menu/swap_dark.svg',
+                                            ? 'assets/icons/menudva/swap_light.svg'
+                                            : 'assets/icons/menudva/swap_dark.svg',
                                         width: 30,
                                         height: 30,
                                       ),
@@ -1366,8 +1668,8 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                     children: [
                                       SvgPicture.asset(
                                         AppTheme.isLightTheme
-                                            ? 'assets/icons/menu/trade_light.svg'
-                                            : 'assets/icons/menu/trade_dark.svg',
+                                            ? 'assets/icons/menudva/trade_light.svg'
+                                            : 'assets/icons/menudva/trade_dark.svg',
                                         width: 30,
                                         height: 30,
                                       ),
@@ -1403,8 +1705,8 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                                   children: [
                                     SvgPicture.asset(
                                       AppTheme.isLightTheme
-                                          ? 'assets/icons/menu/send_light.svg'
-                                          : 'assets/icons/menu/send_dark.svg',
+                                          ? 'assets/icons/menudva/send_light.svg'
+                                          : 'assets/icons/menudva/send_dark.svg',
                                       width: 30,
                                       height: 30,
                                     ),
@@ -1438,6 +1740,25 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedTab = 'Feed';
+                                  });
+                                },
+                                child: Text(
+                                  'Feed',
+                                  style: TextStyle(
+                                    fontFamily: 'Aeroport',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    color: _selectedTab == 'Feed'
+                                        ? AppTheme.textColor
+                                        : const Color(0xFF818181),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 15),
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -1479,16 +1800,16 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _selectedTab = 'History';
+                                    _selectedTab = 'Chat';
                                   });
                                 },
                                 child: Text(
-                                  'History',
+                                  'Chat',
                                   style: TextStyle(
                                     fontFamily: 'Aeroport',
                                     fontSize: 20,
                                     fontWeight: FontWeight.w500,
-                                    color: _selectedTab == 'History'
+                                    color: _selectedTab == 'Chat'
                                         ? AppTheme.textColor
                                         : const Color(0xFF818181),
                                   ),
@@ -1497,6 +1818,151 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                             ],
                           ),
                           const SizedBox(height: 20),
+                          // Feed list - shown when Feed tab is selected
+                          if (_selectedTab == 'Feed')
+                            Column(
+                              children: _feedItems.map((item) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: Container(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        // Feed item icon - 30px, centered vertically relative to 40px text columns
+                                        SvgPicture.asset(
+                                          item['icon'] as String,
+                                          width: 30,
+                                          height: 30,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        // Primary and secondary text column
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                height: 20,
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                    item['primaryText'] as String,
+                                                    style: TextStyle(
+                                                      fontFamily: 'Aeroport',
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: AppTheme.textColor,
+                                                      height: 1.0,
+                                                    ),
+                                                    textHeightBehavior:
+                                                        const TextHeightBehavior(
+                                                      applyHeightToFirstAscent:
+                                                          false,
+                                                      applyHeightToLastDescent:
+                                                          false,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 20,
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                    item['secondaryText'] as String,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Aeroport',
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      color: Color(0xFF818181),
+                                                      height: 1.0,
+                                                    ),
+                                                    textHeightBehavior:
+                                                        const TextHeightBehavior(
+                                                      applyHeightToFirstAscent:
+                                                          false,
+                                                      applyHeightToLastDescent:
+                                                          false,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Timestamp and right text column (right-aligned)
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            SizedBox(
+                                              height: 20,
+                                              child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                  item['timestamp'] as String,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Aeroport',
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w500, // medium
+                                                    color: AppTheme.textColor,
+                                                    height: 1.0,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                  textHeightBehavior:
+                                                      const TextHeightBehavior(
+                                                    applyHeightToFirstAscent:
+                                                        false,
+                                                    applyHeightToLastDescent:
+                                                        false,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                              child: item['rightText'] != null
+                                                  ? Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                        item['rightText'] as String,
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Aeroport',
+                                                          fontSize: 15,
+                                                          fontWeight: FontWeight.w400,
+                                                          color: Color(0xFF818181),
+                                                          height: 1.0,
+                                                        ),
+                                                        textAlign: TextAlign.right,
+                                                        textHeightBehavior:
+                                                            const TextHeightBehavior(
+                                                          applyHeightToFirstAscent:
+                                                              false,
+                                                          applyHeightToLastDescent:
+                                                              false,
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : const SizedBox.shrink(),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           // Coins list - shown when Coins tab is selected
                           if (_selectedTab == 'Coins')
                             Column(
@@ -1644,141 +2110,6 @@ class _SimpleMainPageState extends State<SimpleMainPage>
                         ],
                       ),
                     ),
-                    const Spacer(),
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          const EdgeInsets.only(top: 10, left: 15, right: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              constraints: const BoxConstraints(minHeight: 30),
-                              child: _controller.text.isEmpty
-                                  ? SizedBox(
-                                      height: 30,
-                                      child: TextField(
-                                        key: _textFieldKey,
-                                        controller: _controller,
-                                        focusNode: _focusNode,
-                                        enabled: true,
-                                        readOnly: false,
-                                        cursorColor: AppTheme.textColor,
-                                        cursorHeight: 15,
-                                        maxLines: 11,
-                                        minLines: 1,
-                                        textAlignVertical:
-                                            TextAlignVertical.center,
-                                        style: TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2.0,
-                                            color: AppTheme.textColor),
-                                        onSubmitted: (value) {
-                                          _navigateToNewPage();
-                                        },
-                                        onChanged: (value) {},
-                                        decoration: InputDecoration(
-                                          hintText: (_isFocused ||
-                                                  _controller.text.isNotEmpty)
-                                              ? null
-                                              : 'Ask anything',
-                                          hintStyle: TextStyle(
-                                              color: AppTheme.textColor,
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2.0),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: !_isFocused
-                                              ? const EdgeInsets.only(
-                                                  left: 0,
-                                                  right: 0,
-                                                  top: 5,
-                                                  bottom: 5)
-                                              : const EdgeInsets.only(right: 0),
-                                        ),
-                                      ),
-                                    )
-                                  : Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: TextField(
-                                        key: _textFieldKey,
-                                        controller: _controller,
-                                        focusNode: _focusNode,
-                                        enabled: true,
-                                        readOnly: false,
-                                        cursorColor: AppTheme.textColor,
-                                        cursorHeight: 15,
-                                        maxLines: 11,
-                                        minLines: 1,
-                                        textAlignVertical: _controller.text
-                                                    .split('\n')
-                                                    .length ==
-                                                1
-                                            ? TextAlignVertical.center
-                                            : TextAlignVertical.bottom,
-                                        style: TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2,
-                                            color: AppTheme.textColor),
-                                        onSubmitted: (value) {
-                                          _navigateToNewPage();
-                                        },
-                                        onChanged: (value) {},
-                                        decoration: InputDecoration(
-                                          hintText: (_isFocused ||
-                                                  _controller.text.isNotEmpty)
-                                              ? null
-                                              : 'Ask anything',
-                                          hintStyle: TextStyle(
-                                              color: AppTheme.textColor,
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: _controller.text
-                                                      .split('\n')
-                                                      .length >
-                                                  1
-                                              ? const EdgeInsets.only(
-                                                  left: 0, right: 0, top: 11)
-                                              : const EdgeInsets.only(right: 0),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 7.5),
-                            child: GestureDetector(
-                              onTap: () {
-                                _navigateToNewPage();
-                              },
-                              child: SvgPicture.asset(
-                                AppTheme.isLightTheme
-                                    ? 'assets/icons/apply_light.svg'
-                                    : 'assets/icons/apply_dark.svg',
-                                width: 15,
-                                height: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -1801,8 +2132,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // Helper method to calculate logo top padding
   double _getLogoTopPadding() {
     final service = TelegramSafeAreaService();
+    
+    // Check if we're in a browser (Telegram WebApp not available)
+    // In browser, safe area insets are not available, so use fallback
+    if (!service.isAvailable) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
+    
     final safeAreaInset = service.getSafeAreaInset();
     final contentSafeAreaInset = service.getContentSafeAreaInset();
+
+    // If both insets are zero (browser or no safe area data), use fallback
+    if (safeAreaInset.isEmpty && contentSafeAreaInset.isEmpty) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
 
     // Formula: top SafeAreaInset + (top ContentSafeAreaInset / 2) - 16
     // This centers the 32px logo in the content safe area zone, respecting the upper inset
@@ -1820,11 +2165,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return bottomPadding;
   }
 
-  final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  final GlobalKey _textFieldKey = GlobalKey();
-  bool _isFocused = false;
-  bool _isTappingSuggestion = false;
+  
+  void _handleBackButton() {
+    Navigator.of(context).pop();
+  }
+  
+  StreamSubscription<tma.BackButton>? _backButtonSubscription;
 
   // Chart data
   List<double>? _chartDataPoints;
@@ -2029,7 +2375,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           final priceText = _formatPrice(price);
           final textPainter = TextPainter(
             text: TextSpan(text: priceText, style: textStyle),
-            textDirection: TextDirection.ltr,
           );
           textPainter.layout();
           maxWidth = math.max(maxWidth, textPainter.width);
@@ -2041,7 +2386,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final minPriceText = _formatPrice(_chartMinPrice!);
         final textPainter = TextPainter(
           text: TextSpan(text: minPriceText, style: textStyle),
-          textDirection: TextDirection.ltr,
         );
         textPainter.layout();
         maxWidth = math.max(maxWidth, textPainter.width);
@@ -2051,7 +2395,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final maxPriceText = _formatPrice(_chartMaxPrice!);
         final textPainter = TextPainter(
           text: TextSpan(text: maxPriceText, style: textStyle),
-          textDirection: TextDirection.ltr,
         );
         textPainter.layout();
         maxWidth = math.max(maxWidth, textPainter.width);
@@ -2255,7 +2598,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
         final textPainter = TextPainter(
           text: textSpan,
-          textDirection: TextDirection.ltr,
         );
         textPainter.layout();
         final textWidth = textPainter.width;
@@ -2459,7 +2801,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         );
         final textPainter = TextPainter(
           text: TextSpan(text: priceText, style: textStyle),
-          textDirection: TextDirection.ltr,
           textHeightBehavior: const TextHeightBehavior(
             applyHeightToFirstAscent: false,
             applyHeightToLastDescent: false,
@@ -2645,33 +2986,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      // If we're tapping a suggestion, don't update _isFocused state
-      // This prevents the UI from hiding suggestions when focus temporarily changes
-      if (_isTappingSuggestion) {
-        return;
-      }
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
-    });
-    _controller.addListener(() {
-      // Check if text contains newline (Enter was pressed)
-      if (_controller.text.contains('\n')) {
-        print('Newline detected in text field'); // Debug
-        // Remove the newline
-        final textWithoutNewline = _controller.text.replaceAll('\n', '');
-        _controller.value = TextEditingValue(
-          text: textWithoutNewline,
-          selection: TextSelection.collapsed(offset: textWithoutNewline.length),
-        );
-        // Trigger navigation
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _navigateToNewPage();
-        });
-      }
-      setState(() {});
-    });
 
     final random = math.Random();
     final durationMs = 20000 + random.nextInt(14000);
@@ -2698,6 +3012,46 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _fetchSwapAmount();
     // Fetch market stats on page load
     _fetchMarketStats();
+    
+    // Set up back button using flutter_telegram_miniapp package
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final webApp = tma.WebApp();
+        final eventHandler = webApp.eventHandler;
+        
+        // Listen to backButtonClicked event
+        _backButtonSubscription = eventHandler.backButtonClicked.listen((backButton) {
+          _handleBackButton();
+        });
+        
+        // Show the back button
+        Future.delayed(const Duration(milliseconds: 200), () {
+          try {
+            webApp.backButton.show();
+          } catch (e) {
+            // Ignore errors
+          }
+        });
+      } catch (e) {
+        // Ignore errors
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _backButtonSubscription?.cancel();
+    _bgController.dispose();
+    _noiseController.dispose();
+    
+    // Hide back button when leaving swap page
+    try {
+      tma.WebApp().backButton.hide();
+    } catch (e) {
+      // Ignore errors
+    }
+    
+    super.dispose();
   }
 
   Future<void> _fetchChartData({bool isRetry = false}) async {
@@ -3155,44 +3509,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    _bgController.dispose();
-    _noiseController.dispose();
-    super.dispose();
-  }
-
-  void _navigateToNewPage() {
-    final text = _controller.text.trim();
-    print('_navigateToNewPage called with text: "$text"'); // Debug
-    if (text.isNotEmpty) {
-      print('Navigating to NewPage with title: "$text"'); // Debug
-
-      // Track question submission event
-      VercelAnalytics.trackEvent('question_submitted', properties: {
-        'question_length': text.length.toString(),
-      });
-
-      // Track page view for response page
-      VercelAnalytics.trackPageView(path: '/response', title: 'Response');
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => NewPage(title: text),
-        ),
-      ).then((_) {
-        // Clear the text field after navigation
-        _controller.clear();
-        // Track return to home page
-        VercelAnalytics.trackPageView(path: '/', title: 'Home');
-      });
-    } else {
-      print('Text is empty, not navigating'); // Debug
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -3323,97 +3639,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         height: 30,
                       ),
                     ),
-                    if (_isFocused)
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Listener(
-                                onPointerDown: (event) {
-                                  print('Suggestion 1 pointer down'); // Debug
-                                  // Set flag immediately to prevent unfocus
-                                  _isTappingSuggestion = true;
-                                  // Request focus immediately
-                                  FocusScope.of(context)
-                                      .requestFocus(_focusNode);
-                                  // Set text and navigate
-                                  _controller.text =
-                                      'What is my all wallet\'s last month profit';
-                                  print(
-                                      'Text set to: ${_controller.text}'); // Debug
-                                  // Navigate after a short delay
-                                  Future.delayed(
-                                      const Duration(milliseconds: 100), () {
-                                    if (mounted) {
-                                      _isTappingSuggestion = false;
-                                      _navigateToNewPage();
-                                    }
-                                  });
-                                },
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 5.0, horizontal: 15.0),
-                                    child: Text(
-                                      'What is my all wallet\'s last month profit',
-                                      style: TextStyle(
-                                        fontFamily: 'Aeroport',
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppTheme.textColor,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 30),
-                              Listener(
-                                onPointerDown: (event) {
-                                  print('Suggestion 2 pointer down'); // Debug
-                                  // Set flag immediately to prevent unfocus
-                                  _isTappingSuggestion = true;
-                                  // Request focus immediately
-                                  FocusScope.of(context)
-                                      .requestFocus(_focusNode);
-                                  // Set text and navigate
-                                  _controller.text = 'Advise me a token to buy';
-                                  print(
-                                      'Text set to: ${_controller.text}'); // Debug
-                                  // Navigate after a short delay
-                                  Future.delayed(
-                                      const Duration(milliseconds: 100), () {
-                                    if (mounted) {
-                                      _isTappingSuggestion = false;
-                                      _navigateToNewPage();
-                                    }
-                                  });
-                                },
-                                child: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 5.0, horizontal: 15.0),
-                                    child: Text(
-                                      'Advise me a token to buy',
-                                      style: TextStyle(
-                                        fontFamily: 'Aeroport',
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppTheme.textColor,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (!_isFocused)
-                      Expanded(
+                    Expanded(
                         child: Column(
                           children: [
                             Expanded(
@@ -4202,152 +4428,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          const EdgeInsets.only(top: 10, left: 15, right: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              constraints: const BoxConstraints(minHeight: 30),
-                              child: _controller.text.isEmpty
-                                  ? SizedBox(
-                                      height: 30,
-                                      child: TextField(
-                                        key: _textFieldKey,
-                                        controller: _controller,
-                                        focusNode: _focusNode,
-                                        enabled: true,
-                                        readOnly: false,
-                                        cursorColor: AppTheme.textColor,
-                                        cursorHeight: 15,
-                                        maxLines: 11,
-                                        minLines: 1,
-                                        textAlignVertical:
-                                            TextAlignVertical.center,
-                                        style: const TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2.0,
-                                            color: Color.fromARGB(
-                                                255, 255, 255, 255)),
-                                        onSubmitted: (value) {
-                                          print(
-                                              'TextField onSubmitted called with: "$value"'); // Debug
-                                          _navigateToNewPage();
-                                        },
-                                        onChanged: (value) {
-                                          print(
-                                              'TextField onChanged called with: "$value"'); // Debug
-                                        },
-                                        decoration: InputDecoration(
-                                          hintText: (_isFocused ||
-                                                  _controller.text.isNotEmpty)
-                                              ? null
-                                              : 'Ask anything',
-                                          hintStyle: TextStyle(
-                                              color: AppTheme.textColor,
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2.0),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: !_isFocused
-                                              ? const EdgeInsets.only(
-                                                  left: 0,
-                                                  right: 0,
-                                                  top: 5,
-                                                  bottom: 5)
-                                              : const EdgeInsets.only(right: 0),
-                                        ),
-                                      ),
-                                    )
-                                  : Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: TextField(
-                                        key: _textFieldKey,
-                                        controller: _controller,
-                                        focusNode: _focusNode,
-                                        enabled: true,
-                                        readOnly: false,
-                                        cursorColor: AppTheme.textColor,
-                                        cursorHeight: 15,
-                                        maxLines: 11,
-                                        minLines: 1,
-                                        textAlignVertical: _controller.text
-                                                    .split('\n')
-                                                    .length ==
-                                                1
-                                            ? TextAlignVertical.center
-                                            : TextAlignVertical.bottom,
-                                        style: TextStyle(
-                                            fontFamily: 'Aeroport',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                            height: 2,
-                                            color: AppTheme.textColor),
-                                        onSubmitted: (value) {
-                                          print(
-                                              'TextField onSubmitted called with: "$value"'); // Debug
-                                          _navigateToNewPage();
-                                        },
-                                        onChanged: (value) {
-                                          print(
-                                              'TextField onChanged called with: "$value"'); // Debug
-                                        },
-                                        decoration: InputDecoration(
-                                          hintText: (_isFocused ||
-                                                  _controller.text.isNotEmpty)
-                                              ? null
-                                              : 'Ask anything',
-                                          hintStyle: const TextStyle(
-                                              color: Color(0xFFFFFFFF),
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: _controller.text
-                                                      .split('\n')
-                                                      .length >
-                                                  1
-                                              ? const EdgeInsets.only(
-                                                  left: 0, right: 0, top: 11)
-                                              : const EdgeInsets.only(right: 0),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 7.5),
-                            child: GestureDetector(
-                              onTap: () {
-                                print('Apply button tapped'); // Debug
-                                _navigateToNewPage();
-                              },
-                              child: SvgPicture.asset(
-                                AppTheme.isLightTheme
-                                    ? 'assets/icons/apply_light.svg'
-                                    : 'assets/icons/apply_dark.svg',
-                                width: 15,
-                                height: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -4388,8 +4468,22 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
   // Helper method to calculate logo top padding
   double _getLogoTopPadding() {
     final service = TelegramSafeAreaService();
+    
+    // Check if we're in a browser (Telegram WebApp not available)
+    // In browser, safe area insets are not available, so use fallback
+    if (!service.isAvailable) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
+    
     final safeAreaInset = service.getSafeAreaInset();
     final contentSafeAreaInset = service.getContentSafeAreaInset();
+
+    // If both insets are zero (browser or no safe area data), use fallback
+    if (safeAreaInset.isEmpty && contentSafeAreaInset.isEmpty) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
 
     // Formula: top SafeAreaInset + (top ContentSafeAreaInset / 2) - 16
     // This centers the 32px logo in the content safe area zone, respecting the upper inset
@@ -4415,11 +4509,6 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
   bool _isLoadingApiKey = false;
   late AnimationController _dotsController;
 
-  // Input field controllers
-  final TextEditingController _inputController = TextEditingController();
-  final FocusNode _inputFocusNode = FocusNode();
-  final GlobalKey _inputTextFieldKey = GlobalKey();
-  bool _isInputFocused = false;
 
   // Scroll controller for auto-scrolling to new responses
   final ScrollController _scrollController = ScrollController();
@@ -4438,11 +4527,6 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
-    _inputFocusNode.addListener(() {
-      setState(() {
-        _isInputFocused = _inputFocusNode.hasFocus;
-      });
-    });
 
     // Load API key from Vercel serverless function (reads from env vars at runtime)
     // Don't await here - it will load in the background
@@ -4514,20 +4598,6 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
       }
     });
 
-    _inputController.addListener(() {
-      // Check if text contains newline (Enter was pressed)
-      if (_inputController.text.contains('\n')) {
-        final textWithoutNewline = _inputController.text.replaceAll('\n', '');
-        _inputController.value = TextEditingValue(
-          text: textWithoutNewline,
-          selection: TextSelection.collapsed(offset: textWithoutNewline.length),
-        );
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _askNewQuestion();
-        });
-      }
-      setState(() {});
-    });
     // Add initial Q&A pair with the title
     setState(() {
       _qaPairs.add(QAPair(
@@ -4547,57 +4617,12 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _dotsController.dispose();
-    _inputController.dispose();
-    _inputFocusNode.dispose();
     _scrollController.dispose();
     // Dispose all animation controllers
     for (var pair in _qaPairs) {
       pair.dotsController?.dispose();
     }
     super.dispose();
-  }
-
-  void _askNewQuestion() {
-    final text = _inputController.text.trim();
-    if (text.isNotEmpty) {
-      // Clear input
-      _inputController.clear();
-
-      // Create new animation controller for this Q&A pair
-      final newDotsController = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1200),
-      )..repeat();
-
-      // Add new Q&A pair at the end (bottom of the list)
-      final newPair = QAPair(
-        question: text,
-        isLoading: true,
-        dotsController: newDotsController,
-      );
-      setState(() {
-        _qaPairs.add(newPair);
-      });
-
-      // Fetch AI response for the new question
-      _fetchAIResponse(newPair);
-
-      // Scroll to bottom after a short delay, only if auto-scroll is enabled
-      if (_autoScrollEnabled) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients) {
-            final maxScroll = _scrollController.position.maxScrollExtent;
-            if (maxScroll > 0) {
-              _scrollController.animateTo(
-                maxScroll,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            }
-          }
-        });
-      }
-    }
   }
 
   Future<void> _loadApiKey() async {
@@ -5124,141 +5149,6 @@ class _NewPageState extends State<NewPage> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(
-                          color: Colors.black,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Container(
-                                constraints:
-                                    const BoxConstraints(minHeight: 30),
-                                child: _inputController.text.isEmpty
-                                    ? SizedBox(
-                                        height: 30,
-                                        child: TextField(
-                                          key: _inputTextFieldKey,
-                                          controller: _inputController,
-                                          focusNode: _inputFocusNode,
-                                          cursorColor: AppTheme.textColor,
-                                          cursorHeight: 15,
-                                          maxLines: 11,
-                                          minLines: 1,
-                                          textAlignVertical:
-                                              TextAlignVertical.center,
-                                          style: TextStyle(
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2.0,
-                                              color: AppTheme.textColor),
-                                          onSubmitted: (value) {
-                                            _askNewQuestion();
-                                          },
-                                          decoration: InputDecoration(
-                                            hintText: (_isInputFocused ||
-                                                    _inputController
-                                                        .text.isNotEmpty)
-                                                ? null
-                                                : 'Ask anything',
-                                            hintStyle: const TextStyle(
-                                                color: Color(0xFFFFFFFF),
-                                                fontFamily: 'Aeroport',
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                                height: 2.0),
-                                            border: InputBorder.none,
-                                            enabledBorder: InputBorder.none,
-                                            focusedBorder: InputBorder.none,
-                                            isDense: true,
-                                            contentPadding: !_isInputFocused
-                                                ? const EdgeInsets.only(
-                                                    left: 0,
-                                                    right: 0,
-                                                    top: 5,
-                                                    bottom: 5)
-                                                : const EdgeInsets.only(
-                                                    right: 0),
-                                          ),
-                                        ),
-                                      )
-                                    : Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 8),
-                                        child: TextField(
-                                          key: _inputTextFieldKey,
-                                          controller: _inputController,
-                                          focusNode: _inputFocusNode,
-                                          cursorColor: AppTheme.textColor,
-                                          cursorHeight: 15,
-                                          maxLines: 11,
-                                          minLines: 1,
-                                          textAlignVertical: _inputController
-                                                      .text
-                                                      .split('\n')
-                                                      .length ==
-                                                  1
-                                              ? TextAlignVertical.center
-                                              : TextAlignVertical.bottom,
-                                          style: TextStyle(
-                                              fontFamily: 'Aeroport',
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                              height: 2,
-                                              color: AppTheme.textColor),
-                                          onSubmitted: (value) {
-                                            _askNewQuestion();
-                                          },
-                                          decoration: InputDecoration(
-                                            hintText: (_isInputFocused ||
-                                                    _inputController
-                                                        .text.isNotEmpty)
-                                                ? null
-                                                : 'Ask anything',
-                                            hintStyle: const TextStyle(
-                                                color: Color(0xFFFFFFFF),
-                                                fontFamily: 'Aeroport',
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                                height: 2),
-                                            border: InputBorder.none,
-                                            enabledBorder: InputBorder.none,
-                                            focusedBorder: InputBorder.none,
-                                            isDense: true,
-                                            contentPadding: _inputController
-                                                        .text
-                                                        .split('\n')
-                                                        .length >
-                                                    1
-                                                ? const EdgeInsets.only(
-                                                    left: 0, right: 0, top: 11)
-                                                : const EdgeInsets.only(
-                                                    right: 0),
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            GestureDetector(
-                              onTap: () {
-                                _askNewQuestion();
-                              },
-                              child: SvgPicture.asset(
-                                AppTheme.isLightTheme
-                                    ? 'assets/icons/apply_light.svg'
-                                    : 'assets/icons/apply_dark.svg',
-                                width: 15,
-                                height: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -5288,8 +5178,22 @@ class _TradePageState extends State<TradePage> with TickerProviderStateMixin {
   // Helper method to calculate logo top padding
   double _getLogoTopPadding() {
     final service = TelegramSafeAreaService();
+    
+    // Check if we're in a browser (Telegram WebApp not available)
+    // In browser, safe area insets are not available, so use fallback
+    if (!service.isAvailable) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
+    
     final safeAreaInset = service.getSafeAreaInset();
     final contentSafeAreaInset = service.getContentSafeAreaInset();
+
+    // If both insets are zero (browser or no safe area data), use fallback
+    if (safeAreaInset.isEmpty && contentSafeAreaInset.isEmpty) {
+      // Browser fallback: use 30px top padding
+      return 30.0;
+    }
 
     // Formula: top SafeAreaInset + (top ContentSafeAreaInset / 2) - 16
     // This centers the 32px logo in the content safe area zone, respecting the upper inset
@@ -5506,12 +5410,14 @@ class _TradePageState extends State<TradePage> with TickerProviderStateMixin {
                     left: 15,
                     right: 15,
                   ),
-                  child: SvgPicture.asset(
-                    AppTheme.isLightTheme
-                        ? 'assets/images/logo_light.svg'
-                        : 'assets/images/logo_dark.svg',
-                    width: 30,
-                    height: 30,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      AppTheme.isLightTheme
+                          ? 'assets/images/404_light.svg'
+                          : 'assets/images/404_dark.svg',
+                      width: 32,
+                      height: 32,
+                    ),
                   ),
                 ),
               ),
